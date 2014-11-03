@@ -1,0 +1,2 @@
+requests>=2.1.0
+lucene-querybuilder>=0.2
