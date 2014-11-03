@@ -66,6 +66,17 @@ public class Airports extends ServerPlugin
         if (null != airport_lon) properties.put("airport_long", airport_lon) ;
         if (null != airport_region) properties.put("airport_region", airport_region) ;
         
+        // The first order of business for Airports is to confirm that no other
+        // Airport already has the call_letters in question.
+        if (null!=cypherGetAirportNode(graphDb, call_letters)){
+            return false;
+        }
+        
+        // If you are familiar with relational databases, this may sound a lot like 
+        // a uniqueness constraint.  Neo4j also supports uniqueness constraints.
+        // Please see the static method "Airports.setUniqueConstraints" for an example.
+        // (The above uniqueness check is only needed in the absense of the contraint)
+        
         Node n = null;
         // Start a transaction
         try ( Transaction tx = graphDb.beginTx() )
@@ -113,7 +124,6 @@ public class Airports extends ServerPlugin
         // performance if you execute multiple queries against the same
         // engine instead of spinning up one per query
         ExecutionEngine engine = new ExecutionEngine( graphDb );
-        ExecutionResult result;
         
         // Since we want to reuse this code elsewhere (because of the performance
         // boost from reusing an execution engine) we use another function to get results
@@ -272,9 +282,6 @@ public class Airports extends ServerPlugin
         }
     }
     
-    
-    
-    // START SNIPPET: createReltype
     public static enum FlightTypes implements RelationshipType
     {
         Flight;
@@ -283,13 +290,31 @@ public class Airports extends ServerPlugin
     public static enum AirportLabelNames implements Label {
         Airport;
     }
+
+    /** THE THREE ENDPOINTS ABOVE ARE SEPARATE FROM THE LOGIC BELOW.
+     *  TO USE THE SERVER PLUGINS, COMPILE A .jar, AND PLACE THE FILE
+     *  IN THE PLUGINS FOLDER OF THE SERVER (AND RESTART THE SERVER)
+     */
+
+    /** THE LOGIC BELOW CAN BE USED IN AN EMBEDDED SERVER (NOT THE REST API).
+     *  TO USE AN EMBEDDED SERVER, COMPILE A .jar, AND EXECUTE THE FILE AS YOU
+     *  WOULD ANY OTHER JAVA PROGRAM. (e.g. java -Xmx10g -jar Airports.jar )
+     * 
+     *  THE SERVER BELOW DOESN'T DO MUCH (YET).  IT JUST STARTS, CREATES
+     *  A NEW EMBEDDED DATABASE AT LOCATION "DB_PATH" (BLOWING AWAY ANYTHING
+     *  ALREADY AT THAT LOCATION), APPLIES A UNIQUENESS CONSTRAINT ON AIRPORTS, 
+     *  AND TURNS ITSELF OFF.
+     */
     
     public static void main( final String[] args )
     {
         System.out.println("Starting Airports");
-        Airports hello = new Airports();
-        hello.createDb();
-        hello.shutDown();
+        Airports demoAirports = new Airports();
+        demoAirports.createDb();
+        //
+        // Do something interesting here
+        //
+        demoAirports.shutDown();
     }
     
     public static void setUniqueConstraints(GraphDatabaseService graphDb){
@@ -314,7 +339,6 @@ public class Airports extends ServerPlugin
         registerShutdownHook( graphDb );
         // END SNIPPET: startDb
 
-        
         //Set unique constraints
         setUniqueConstraints(graphDb);
         
@@ -361,54 +385,4 @@ public class Airports extends ServerPlugin
             file.delete();
         }
     }
-    
-    
-    
-    
 }
-//SYS_FIELD_NAME	 FIELD_DESC
-//YEAR	Year
-//QUARTER	Quarter
-//MONTH	Month
-//ORIGIN_AIRPORT_ID	Origin Airport, Airport ID. An identification number assigned by US DOT to identify a unique airport.  Use this field for airport analysis across a range of years because an airport can change its airport code and airport codes can be reused.
-//ORIGIN_AIRPORT_SEQ_ID	Origin Airport, Airport Sequence ID. An identification number assigned by US DOT to identify a unique airport at a given point of time.  Airport attributes, such as airport name or coordinates, may change over time.
-//ORIGIN_CITY_MARKET_ID	Origin Airport, City Market ID. City Market ID is an identification number assigned by US DOT to identify a city market.  Use this field to consolidate airports serving the same city market.
-//ORIGIN	Origin Airport
-//ORIGIN_CITY_NAME	Origin City
-//ORIGIN_STATE_ABR	Origin State Code
-//ORIGIN_STATE_FIPS	Origin State FIPS (U.S. Federal Information Processing Standard Codes)
-//ORIGIN_STATE_NM	Origin Airport, State Name
-//ORIGIN_WAC	Origin Airport, World Area Code
-//DEST_AIRPORT_ID	Destination Airport, Airport ID. An identification number assigned by US DOT to identify a unique airport.  Use this field for airport analysis across a range of years because an airport can change its airport code and airport codes can be reused.
-//DEST_AIRPORT_SEQ_ID	Destination Airport, Airport Sequence ID. An identification number assigned by US DOT to identify a unique airport at a given point of time.  Airport attributes, such as airport name or coordinates, may change over time.
-//DEST_CITY_MARKET_ID	Destination Airport, City Market ID. City Market ID is an identification number assigned by US DOT to identify a city market.  Use this field to consolidate airports serving the same city market.
-//DEST	Destination Airport
-//DEST_CITY_NAME	Destination City
-//DEST_STATE_ABR	Destination State Code
-//DEST_STATE_FIPS	Destination State FIPS (U.S. Federal Information Processing Standard Codes)
-//DEST_STATE_NM	Destination Airport, State Name
-//DEST_WAC	Destination Airport, World Area Code
-//UNIQUE_CARRIER	Unique Carrier Code. When the same code has been used by multiple carriers, a numeric suffix is used for earlier users, for example, PA, PA(1), PA(2). Use this field for analysis across a range of years.
-//AIRLINE_ID	An identification number assigned by US DOT to identify a unique airline (carrier). A unique airline (carrier) is defined as one holding and reporting under the same DOT certificate regardless of its Code, Name, or holding company/corporation.
-//UNIQUE_CARRIER_NAME	Unique Carrier Name. When the same name has been used by multiple carriers, a numeric suffix is used for earlier users, for example, Air Caribbean, Air Caribbean (1).
-//UNIQUE_CARRIER_ENTITY	Unique Entity for a Carrier's Operation Region.
-//REGION	Carrier's Operation Region. Carriers Report Data by Operation Region
-//CARRIER	Code assigned by IATA and commonly used to identify a carrier. As the same code may have been assigned to different carriers over time, the code is not always unique. For analysis, use the Unique Carrier Code.
-//CARRIER_NAME	Carrier Name
-//CARRIER_GROUP	Carrier Group Code.  Used in Legacy Analysis
-//CARRIER_GROUP_NEW	Carrier Group New
-//DISTANCE_GROUP	Distance Intervals, every 500 Miles, for Flight Segment
-//CLASS	Service Class
-//AIRCRAFT_GROUP	Aircraft Group
-//AIRCRAFT_TYPE	Aircraft Type
-//AIRCRAFT_CONFIG	Aircraft Configuration
-//DEPARTURES_SCHEDULED	Departures Scheduled
-//DEPARTURES_PERFORMED	Departures Performed
-//PAYLOAD	Available Payload (pounds)
-//SEATS	Available Seats
-//PASSENGERS	Non-Stop Segment Passengers Transported
-//FREIGHT	Non-Stop Segment Freight Transported (pounds)
-//MAIL	Non-Stop Segment Mail Transported (pounds)
-//DISTANCE	Distance between airports (miles)
-//RAMP_TO_RAMP	Ramp to Ramp Time (minutes)
-//AIR_TIME	Airborne Time (minutes)
