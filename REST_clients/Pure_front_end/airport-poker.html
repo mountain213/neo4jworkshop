@@ -1,0 +1,118 @@
+<html>
+    <head>
+        <title>Sample Ajax End-point checker to Neo4J::Airport</title>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/json2/20140204/json2.min.js"></script>
+        <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script>
+            //CREATE a simple ajax request against the Cypher DB; be sure to first populate it
+            /**
+                /graphdb/create_new_airport with params call_letters = "ABC"
+                /graphdb/get_airport_node with params call_letters = [any node you previously typed, i.e. "ABC","XYZ"]
+                /graphdb/add_new_flight with params
+                        call_letters_origin = [any node you previously typed, "ABC"],
+                        call_letters_destination = [any node you previously typed, except the one used in call_letters_origin, i.e. "XYZ"]
+            */
+            function invokeNeo4J(rootUrl, endpoint, params){
+                var queryType = 'GET';
+
+                switch(endpoint){
+                    case 'create_new_airport': queryType = 'POST'; break;
+                    case 'get_airport_node': queryType = 'GET'; break;
+                    case 'add_new_flight': queryType = 'POST'; break;
+
+                    default: queryType = 'GET';
+                }
+
+                var data = params ? JSON.stringify(JSON.parse(params)) : '';
+                var url = rootUrl + endpoint;
+
+                $('.request_type').text(queryType);
+                $('.url_requested').text(url);
+                $('.params_sent').text(data);
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    contentType:'application/json',
+                    data: data,
+                    success: function(data, xhr, textStatus){
+                        // process the returned node data however you need
+                        processResults(data, xhr, textStatus);
+                    },
+                    error: function (xhr){
+                        //maybe we did something wrong?
+                        alert('oops ' + JSON.stringify(xhr));
+                    },
+                    complete: function (xhr, textStatus){
+                        //spit out the entire data node from the query response
+                        $('.results-data').val(JSON.stringify(xhr.responseJSON, undefined, 2));
+                    }
+                 });
+            }
+
+            //PROCESS the given data
+            function processResults(data, xhr, textStatus){
+                $('.results-list').html(JSON.stringify(data, undefined, 2));
+            }
+        </script>
+        <script>
+            function doTheThing(){
+                var DEFAULT_NEO4J_URL = 'http://REPLACE_WITH_LOCATION_OF_SERVER:7474/db/data/ext/Airports/graphdb/';
+                var DEFAULT_NEO4J_ENDPOINT = 'get_airport_node';
+                var DEFAULT_PARAMS= '{"call_letters": "TLA"}';
+
+                $('button.doSearch').on('click', function(e){
+                    var givenURL = $('textarea.url_to_neo4j').val();
+                    var givenEndpoint = $('textarea.endpoint').val();
+                    var givenParams = $('textarea.params').val();
+
+                    invokeNeo4J(givenURL, givenEndpoint, givenParams);
+                });
+
+                $('button.doReset').on('click', function(e){
+                    $('textarea.url_to_neo4j').val(DEFAULT_NEO4J_URL);
+                    $('textarea.endpoint').val(DEFAULT_NEO4J_ENDPOINT);
+                    $('textarea.params').val(DEFAULT_PARAMS);
+
+                    $('.request_type').html('');
+                    $('.url_requested').html('');
+                    $('.params_sent').html('');
+
+                    $('.results-list').html('');
+                    $('.results-data').val('');
+                });
+            }
+
+            $(document).ready(doTheThing);
+        </script>
+    </head>
+    <body>
+        <div class="input-area">
+            <textarea class="url_to_neo4j" rows="1" cols="70">http://ec2-54-196-171-30.compute-1.amazonaws.com:7474/db/data/ext/Airports/graphdb/</textarea>
+            <textarea class="endpoint" rows="1" cols="70">create_new_airport</textarea>
+            <br/><code>Endpoints are:  create_new_airport, get_airport_node, add_new_flight</code>
+            <br/><br/>
+
+            <textarea class="params" rows="1" cols="70">{"call_letters": "TLA"}</textarea>
+            <br/><code>sample params for create_new_airport:  {"call_letters": "TLA"}</code>
+            <br/><code>sample params for get_airport_node:  {"call_letters": "TLA"}</code>
+            <br/><code>sample params for add_new_flight:  {"call_letters_origin": "TLA" , "call_letters_destination": "TLB"}</code>
+            <br/><br/>
+
+            <button class="doSearch">GO!</button>
+            <button class="doReset">Reset</button>
+        </div>
+        <div class="content">
+            <h3>Results</h3>
+            <br/><code class="request_type">...</code>
+            <br/><code class="url_requested">...</code>
+            <br/><code class="params_sent">...</code>
+
+            <br/>
+            <pre class="results-list"></pre>
+
+            <h3>Raw Data</h3>
+            <textarea class="results-data" rows="10" cols="70"></textarea>
+        </div>
+    </body>
+</html>

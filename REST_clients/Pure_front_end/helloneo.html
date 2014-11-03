@@ -1,0 +1,61 @@
+<html>
+    <head>
+        <title>Simple Ajax to Neo4J</title>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/json2/20140204/json2.min.js"></script>
+        <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script>
+            //CREATE a simple ajax request against the Cypher DB; be sure to first populate it
+            function invokeNeo4J(url, numEntries){
+                var DEFAULT_NEO4J_URL = 'http://localhost:7474/db/data/cypher';
+
+                var query = "MATCH n RETURN n LIMIT 1";
+                var params = {};
+
+                $.ajax({
+                    type: 'POST',
+                    url: DEFAULT_NEO4J_URL,
+                    contentType:'application/json',
+                    data: JSON.stringify({ "query" : query, "params": params }),
+                    success: function(data, xhr, textStatus){
+                        // process the returned node data however you need
+                        ;
+                    },
+                    error: function (xhr){
+                        //maybe we did something wrong?
+                        alert('oops ' + JSON.stringify(xhr));
+                    },
+                    complete: function (xhr, textStatus){
+                        //spit out the entire data node from the query response
+                        alert('FOUND : \n\n' + JSON.stringify(xhr.responseJSON.data));
+                    }
+                 });
+            }
+
+            //PROCESS the given data
+            function processResults(data, xhr, textStatus){
+                var node = data.data;
+                var numItems = node.length;
+                var blob = [];
+
+                for (var i = 0; i < numItems; i++){
+                    var entry = node[i][0].data;
+                    var output = [];
+
+                    for (var property in entry){
+                        output.push(property + ': ' + entry[property]);
+                    }
+
+                    blob.push(output.join('<br\/>'));
+                }
+
+                $('.results-list').html(blob.join('<br\/><br\/>'));
+            }
+        </script>
+        <script>
+            $(document).ready(invokeNeo4J);
+        </script>
+    </head>
+    <body>
+
+    </body>
+</html>

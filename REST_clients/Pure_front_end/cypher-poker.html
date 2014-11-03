@@ -1,0 +1,89 @@
+<html>
+    <head>
+        <title>Simple Ajax to Neo4J::Cypher</title>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/json2/20140204/json2.min.js"></script>
+        <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script>
+            //CREATE a simple ajax request against the Cypher DB; be sure to first populate it
+            function invokeNeo4J(url, numEntries){
+                var query = "MATCH (n) RETURN n LIMIT " + numEntries;
+                var params = {};
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    contentType:'application/json',
+                    data: JSON.stringify({ "query" : query, "params": params }),
+                    success: function(data, xhr, textStatus){
+                        // process the returned node data however you need
+                        processResults(data, xhr, textStatus);
+                    },
+                    error: function (xhr){
+                        //maybe we did something wrong?
+                        alert('oops ' + JSON.stringify(xhr));
+                    },
+                    complete: function (xhr, textStatus){
+                        //spit out the entire data node from the query response
+                        $('.results-data').text(JSON.stringify(xhr.responseJSON.data));
+                    }
+                 });
+            }
+
+            //PROCESS the given data
+            function processResults(data, xhr, textStatus){
+                var node = data.data;
+                var numItems = node.length;
+                var blob = [];
+
+                for (var i = 0; i < numItems; i++){
+                    var entry = node[i][0].data;
+                    var output = [];
+
+                    for (var property in entry){
+                        output.push(property + ': ' + entry[property]);
+                    }
+
+                    blob.push(output.join('<br\/>'));
+                }
+
+                $('.results-list').html(blob.join('<br\/><br\/>'));
+            }
+        </script>
+        <script>
+            function doTheThing(){
+                var DEFAULT_NEO4J_URL = 'http://localhost:7474/db/data/cypher';
+
+                $('button.doSearch').on('click', function(e){
+                    var givenURL = $('textarea.url_to_neo4j').val();
+                    var entriesToFind = $('input.entriesToFind').val();
+
+                    invokeNeo4J(givenURL, entriesToFind);
+                });
+
+                $('button.doReset').on('click', function(e){
+                    $('textarea.url_to_neo4j').val(DEFAULT_NEO4J_URL);
+                    $('input.entriesToFind').val(1);
+                    $('.results-list').html('');
+                    $('.results-data').val('');
+                });
+            }
+
+            $(document).ready(doTheThing);
+        </script>
+    </head>
+    <body>
+        <div class="input-area">
+            <textarea class="url_to_neo4j" rows="1" cols="70">http://localhost:7474/db/data/cypher</textarea>
+            <br/><input class="entriesToFind" type="number" value="1"/> Entries to find
+            <button class="doSearch">GO!</button>
+            <button class="doReset">Reset</button>
+        </div>
+        <div class="content">
+            <h3>Entries Found</h3>
+            <div class="results-list"></div>
+
+            <h3>Raw Data</h3>
+            <textarea class="results-data" rows="10" cols="70"></textarea>
+        </div>
+    </body>
+</html>
