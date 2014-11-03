@@ -22,7 +22,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.test.TestGraphDatabaseFactory;
-import airport.Airports;
+import airports.Airports;
 
 
 
@@ -37,14 +37,6 @@ public class RESTAPIEndpointsTest {
     
     public RESTAPIEndpointsTest() {
     }
-    
-//    @BeforeClass
-//    public static void setUpClass() {
-//    }
-//    
-//    @AfterClass
-//    public static void tearDownClass() {
-//    }
     
     @Before
     public void prepareTestDatabase()
