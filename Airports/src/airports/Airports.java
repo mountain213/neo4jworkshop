@@ -28,7 +28,7 @@ import org.neo4j.server.plugins.Source;
  * Code snippets taken from http://neo4j.com/docs/
  */
 
-@Description( "An extension to the Neo4j Server for getting all nodes or relationships" )
+@Description( "An extension to the Neo4j Server for adding Airports and Flights" )
 public class Airports extends ServerPlugin
 {
     private static final String DB_PATH = "/usr/local/neo4j/data/graph.db";
