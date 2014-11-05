@@ -1,0 +1,35 @@
+## Update security
+sudo apt-get update && sudo apt-get upgrade -y
+
+## Install dependencies
+sudo apt-get install git openjdk-7-jre openjdk-7-jdk ant maven -y
+
+## Add Neo4j to apt tool
+sudo wget -O - http://debian.neo4j.org/neotechnology.gpg.key | sudo apt-key add - 
+echo 'deb http://debian.neo4j.org/repo stable/' | sudo tee /etc/apt/sources.list.d/neo4j.list
+sudo apt-get update && sudo apt-get upgrade -y
+
+## Download and extract neo4j
+sudo wget http://neo4j.com/artifact.php?name=neo4j-community-2.1.4-unix.tar.gz
+sudo tar xzvf artifact.php?name=neo4j-community-2.1.4-unix.tar.gz
+sudo rm artifact.php?name=neo4j-community-2.1.4-unix.tar.gz
+sudo mv neo4j-community-2.1.4/ /usr/local/neo4j
+cd /usr/local/neo4j
+
+## Configure - currently only open to localhost - opening to the world
+sudo sed -i 's/#org.neo4j.server.webserver.address=0.0.0.0/org.neo4j.server.webserver.address=0.0.0.0/' ./conf/neo4j-server.properties
+
+## Clone the Git repo and copy the plugin jar into the Neo4j plugins directory
+cd ~/
+git clone https://github.com/mountain213/neo4jworkshop.git
+sudo cp neo4jworkshop/Airports/dist/Airports.jar /usr/local/neo4j/plugins/
+
+### Start Neo4j in the background
+echo "sudo /usr/local/neo4j/bin/neo4j console" > run_neo.sh
+nohup sh run_neo.sh &> nohup.out &
+
+## Confirm you can reach the server from your browser
+
+## Add the data (the slow way) into the database
+# cd ~/neo4jworkshop/REST_clients/Python_client
+# python add_gdf_to_database.py
