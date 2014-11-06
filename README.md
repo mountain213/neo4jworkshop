@@ -10,6 +10,8 @@ SLIDES:
 - Part 1 15-30m: https://docs.google.com/presentation/d/1mPcoiMlYCTxzf3A3cbs4c9PV-Rr3Xnh51f_d6kswtZE/edit?usp=sharing
 - Part 2 50-65m: https://docs.google.com/presentation/d/1s1GAgAc1NcjS2EKS3NCgroAseQThHO82SG99hliBnyE/edit?usp=sharing
 
+AWS EC2 Instance AMI-ID: Airport-Neo4j-Demo - ami-74df561c (In the Community AMIs section, search for neo4j)
+
 CREDITS:
 Flights data:
 Bureau of Transportation Statistics, U.S. Department of Transportation: 
